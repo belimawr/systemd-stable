@@ -179,9 +179,9 @@ static void managed_journal_file_set_offline_internal(ManagedJournalFile *f) {
                         break;
 
                 case OFFLINE_SYNCING:
-                        if (f->archive) {
-                                (void) journal_file_end_punch_hole(f);
-                                (void) journal_file_punch_holes(f);
+                        if (f->file->archive) {
+                                (void) journal_file_end_punch_hole(f->file);
+                                (void) managed_journal_file_punch_holes(f->file);
                         }
 
                         (void) fsync(f->file->fd);
@@ -335,10 +335,10 @@ int managed_journal_file_set_offline(ManagedJournalFile *f, bool wait) {
 
         if (wait) {
                 /* Without using a thread if waiting. */
-                journal_file_set_offline_internal(f);
+                managed_journal_file_set_offline_internal(f);
 
-                assert(f->offline_state == OFFLINE_DONE);
-                f->offline_state = OFFLINE_JOINED;
+                assert(f->file->offline_state == OFFLINE_DONE);
+                f->file->offline_state = OFFLINE_JOINED;
 
         } else {
                 sigset_t ss, saved_ss;
